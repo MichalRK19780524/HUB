@@ -76,6 +76,14 @@ def GetAdc(id, chn):
     return AdcValue
 
 
+def GetVoltageMasterV(id):
+    voltage_bit = GetAdc(id, 3)
+    return 0.0183 * voltage_bit - 1.197
+
+def GetVoltageSlaveV(id):
+    voltage_bit = GetAdc(id, 4)
+    return 0.0183 * voltage_bit - 1.197
+
 def SetDacRAW(id, val1, val2):
     print("Jestem AFE_SetDacRaw()\n")
     # convert data
@@ -110,8 +118,17 @@ def SetDacRAW(id, val1, val2):
 def SetDac(id, val1, val2):
     print("Jestem AFE_SetDac()\n")
     # convert data
-    val1conv = (-271.2)*val1 + 18142
-    val2conv = (-271.2)*val2 + 18142
+    # val1conv = (-271.2)*val1 + 18142
+    # val2conv = (-271.2)*val2 + 18142
+    # New voltage calibration AFE v1.1 Kiecana&Bancer 2022-04-13
+    val1conv = -0.0941 * val1**3 + 16.282 * val1**2 - 1197.1 * val1 + 34460
+    val2conv = -0.0941 * val2**3 + 16.282 * val2**2 - 1197.1 * val2 + 34460
+
+    if int(val1conv) < 0:
+        val1conv = 0
+    if int(val2conv) < 0:
+        val2conv = 0
+
     print("dac1: ", int(val1conv), "dac2: ", int(val2conv))
     can = pyb.CAN(1)
     can.init(pyb.CAN.NORMAL, extframe=False, prescaler=54,
